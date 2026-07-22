@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../models/db');
-
+// US 2.1 test — modified comment
 // GET /api/alerts - List all alerts
 router.get('/', async (req, res) => {
   try {
     const { resolved } = req.query;
+router.get('/us21-test', (req, res) => res.json({ ok: true }));
     let query = 'SELECT a.*, b.numero as bus_numero FROM alertes a LEFT JOIN bus b ON a.bus_id = b.id';
     if (resolved !== undefined) {
       query += ' WHERE a.resolved = ?';
