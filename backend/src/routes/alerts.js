@@ -30,3 +30,32 @@ router.put('/:id/resolve', async (req, res) => {
 });
 
 module.exports = router;
+
+// POST /api/alerts - Create a new alert
+router.post('/', async (req, res) => {
+  try {
+    const { bus_id, type, message, severity } = req.body;
+    if (!bus_id || !type || !message) {
+      return res.status(400).json({ error: 'Missing required fields: bus_id, type, message' });
+    }
+    const [result] = await pool.execute(
+      'INSERT INTO alertes (bus_id, type, message, severity) VALUES (?, ?, ?, ?)',
+      [bus_id, type, message, severity || 'info']
+    );
+    res.status(201).json({ id: result.insertId, message: 'Alert created' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/alerts/stats - Get alert statistics
+router.get('/stats', async (req, res) => {
+  try {
+    const [rows] = await pool.execute(
+      'SELECT severity, COUNT(*) as count FROM alertes WHERE resolved = FALSE GROUP BY severity'
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
