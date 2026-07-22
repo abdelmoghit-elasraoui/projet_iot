@@ -30,3 +30,6 @@ router.put('/:id/resolve', async (req, res) => {
 });
 
 module.exports = router;
+
+   router.get('/ping', (req, res) => res.json({ pong: true }));
+   
