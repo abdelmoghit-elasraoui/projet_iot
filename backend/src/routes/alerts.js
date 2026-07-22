@@ -59,3 +59,14 @@ router.get('/stats', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// PATCH /api/alerts/:id - Update alert severity
+router.patch("/:id", async (req, res) => {
+  try {
+    const { severity } = req.body;
+    await pool.execute("UPDATE alertes SET severity = ? WHERE id = ?", [severity, req.params.id]);
+    res.json({ message: "Alert updated" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
