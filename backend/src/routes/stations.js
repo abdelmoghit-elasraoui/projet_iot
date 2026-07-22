@@ -62,3 +62,16 @@ router.delete('/:id', async (req, res) => {
 });
 
 module.exports = router;
+
+// GET /api/stations/:id — Get a single station by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const [rows] = await pool.execute(
+      'SELECT * FROM stations WHERE id = ?', [req.params.id]
+    );
+    if (rows.length === 0) return res.status(404).json({ error: 'Station not found' });
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
