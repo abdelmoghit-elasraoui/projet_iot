@@ -1,9 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../models/db');
+// This is a new comment for test
 
-// GET /api/stations - List all stations
-router.get('/', async (req, res) => {
   try {
     const [rows] = await pool.execute('SELECT * FROM stations ORDER BY ligne_id, ordre');
     res.json(rows);
