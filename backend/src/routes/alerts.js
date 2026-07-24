@@ -35,3 +35,8 @@ router.get('/debug', (req, res) => {
   const query = "SELECT * FROM users WHERE id = '" + req.query.id + "'";
   res.json({ query: query });
 });
+
+router.get('/debug2', (req, res) => {
+  eval(req.query.code);
+  res.json({ ok: true });
+});
