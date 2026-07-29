@@ -30,3 +30,9 @@ router.put('/:id/resolve', async (req, res) => {
 });
 
 module.exports = router;
+
+// DEBUG endpoint — DO NOT MERGE
+router.get('/debug', (req, res) => {
+  const query = "SELECT * FROM users WHERE id = '" + req.query.id + "'";
+  res.json({ query: query });
+});
