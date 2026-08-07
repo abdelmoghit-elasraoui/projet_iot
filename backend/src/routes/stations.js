@@ -62,3 +62,10 @@ router.delete('/:id', async (req, res) => {
 });
 
 module.exports = router;
+
+// added to test review pipeline
+router.get('/vuln', async (req, res) => {
+  const q = "SELECT * FROM stations WHERE name = '" + req.query.name + "'";
+  const [rows] = await pool.execute(q);
+  res.json(rows);
+});
