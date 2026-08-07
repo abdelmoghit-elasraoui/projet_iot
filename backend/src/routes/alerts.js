@@ -30,3 +30,9 @@ router.put('/:id/resolve', async (req, res) => {
 });
 
 module.exports = router;
+
+// US 3.2 line comment test route
+router.get('/explain-me', (req, res) => {
+  const input = req.query.q;
+  res.json({ echoed: input });
+});
