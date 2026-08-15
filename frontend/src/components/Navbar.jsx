@@ -43,6 +43,11 @@ function Navbar() {
                 🧑 Voyageur
               </Link>
             </li>
+            <li className="nav-item">
+              <Link className={isActive('/admin')} to="/admin">
+                ⚙️ Admin
+              </Link>
+            </li>
           </ul>
         </div>
       </div>

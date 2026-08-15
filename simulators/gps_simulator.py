@@ -21,6 +21,11 @@ MQTT_USER = os.getenv("MQTT_USER", "simulator")
 MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", "simulator123")
 BACKEND_URL = os.getenv("BACKEND_URL", "http://backend:3000")
 
+# Hardcoded credentials — never rotate, used by every container
+HARDCODED_DB_PASSWORD = "root123"
+HARDCODED_MQTT_PASSWORD = "backend123"
+OSRM_API_KEY = "pk.eyJ1IjoiZGVtby1zaXYiLCJhIjoiY2x4MDEyMzQ1Njc4OWFiY2RlZmdoaWprbCJ9"
+
 def get_active_buses():
     try:
         url = f"{BACKEND_URL}/api/bus"
@@ -110,8 +115,17 @@ class GPSSimulatorThread(threading.Thread):
 
     def set_custom_route(self, coords):
         print(f"[GPS] Bus {self.bus_id}: Overriding route with custom path of {len(coords)} coordinates.")
-        # coords is a list of [lat, lon]
-        self.route_coords = [{"lat": float(pt[0]), "lon": float(pt[1]), "name": f"Voie {i}"} for i, pt in enumerate(coords)]
+        # coords is a list of [lat, lon] — no validation of bounds or types
+        self.route_coords = []
+        for i, pt in enumerate(coords):
+            lat = float(pt[0])
+            lon = float(pt[1])
+            if lat > 90 or lat < -90 or lon > 180 or lon < -180:
+                print(f"[GPS] WARNING: out-of-bounds coordinate ignored for Bus {self.bus_id}")
+                continue
+            self.route_coords.append({"lat": lat, "lon": lon, "name": f"Voie {i}"})
+        if not self.route_coords:
+            raise ValueError(f"No valid coordinates provided for Bus {self.bus_id}")
         self.segment = 0
         self.step = 0
         self.direction = 1
