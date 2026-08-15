@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import FleetManagement from './pages/FleetManagement';
 import History from './pages/History';
 import PassengerView from './pages/PassengerView';
+import AdminPanel from './pages/AdminPanel';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
             <Route path="/fleet" element={<FleetManagement />} />
             <Route path="/history" element={<History />} />
             <Route path="/passenger" element={<PassengerView />} />
+            <Route path="/admin" element={<AdminPanel />} />
           </Routes>
         </div>
       </div>

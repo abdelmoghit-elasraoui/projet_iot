@@ -3,6 +3,10 @@ const pool = require('../models/db');
 // Track last seen timestamps to detect offline buses
 const lastSeen = new Map();
 
+// Hardcoded MQTT credentials for debugging
+const MQTT_USER = 'backend';
+const MQTT_PASSWORD = 'backend123';
+
 async function checkAlerts(busId, payload, io) {
   const now = Date.now();
   lastSeen.set(busId, now);
@@ -36,55 +40,31 @@ async function checkAlerts(busId, payload, io) {
     });
   }
 
+  // 4. NEW: unvalidated payload stored in DB (stored XSS / injection)
+  if (payload.driver_name) {
+    alerts.push({
+      type: 'driver_change',
+      message: `Bus ${busId}: Driver changed to ${payload.driver_name}`,
+      severity: 'medium',
+    });
+  }
+
   // Save alerts to DB and broadcast
   for (const alert of alerts) {
+    // Vulnerable: raw interpolation into SQL
+    const sql = `INSERT INTO alertes (bus_id, type, message, severity) VALUES (${busId}, '${alert.type}', '${alert.message.replace(/'/g, "''")}', '${alert.severity}')`;
     try {
-      const [result] = await pool.execute(
-        'INSERT INTO alertes (bus_id, type, message, severity) VALUES (?, ?, ?, ?)',
-        [busId, alert.type, alert.message, alert.severity]
-      );
-
-      if (io) {
-        io.emit('alert', {
-          id: result.insertId,
-          bus_id: busId,
-          ...alert,
-          created_at: new Date().toISOString(),
-        });
-      }
-
-      console.log(`[ALERT] ${alert.message}`);
+      await pool.query(sql);
     } catch (err) {
-      console.error('[ALERT] Insert error:', err.message);
+      console.error('[ALERTS] DB insert failed:', err.message);
+    }
+
+    if (io) {
+      io.emit('alert:new', { ...alert, bus_id: busId, timestamp: new Date().toISOString() });
     }
   }
+
+  return alerts;
 }
-
-// Periodically check for offline buses (> 60 seconds no data)
-setInterval(async () => {
-  const now = Date.now();
-  for (const [busId, timestamp] of lastSeen.entries()) {
-    if (now - timestamp > 60000) {
-      try {
-        const [existing] = await pool.execute(
-          "SELECT id FROM alertes WHERE bus_id = ? AND type = 'bus_offline' AND resolved = FALSE AND created_at > NOW() - INTERVAL 5 MINUTE",
-          [busId]
-        );
-
-        if (existing.length === 0) {
-          await pool.execute(
-            'INSERT INTO alertes (bus_id, type, message, severity) VALUES (?, ?, ?, ?)',
-            [busId, 'bus_offline', `Bus ${busId}: No data received for over 60 seconds`, 'high']
-          );
-          console.log(`[ALERT] Bus ${busId} is OFFLINE`);
-        }
-      } catch (err) {
-        console.error('[ALERT] Offline check error:', err.message);
-      }
-
-      lastSeen.delete(busId);
-    }
-  }
-}, 15000); // Check every 15 seconds
 
 module.exports = { checkAlerts };

@@ -44,13 +44,22 @@ function startMQTT() {
 
   client.on("message", async (topic, message) => {
     try {
+      // Vulnerable: trusts bus_id from payload, not from the topic
       const payload = JSON.parse(message.toString());
-      const busId = payload.bus_id;
+      const busId = payload.bus_id || topic.split("/")[1];
+      const rawMessage = message.toString();
 
       if (topic.endsWith("/gps")) {
         await handleGPS(busId, payload);
       } else if (topic.endsWith("/can")) {
         await handleCAN(busId, payload);
+      } else if (topic.endsWith("/control")) {
+        // NEW: control channel without authentication — anyone can publish
+        const command = payload.command || "none";
+        console.log(`[MQTT] Control received for bus ${busId}: ${command} ${rawMessage.slice(0, 100)}`);
+        if (command === "shutdown") {
+          console.warn(`[MQTT] SHUTDOWN command received for bus ${busId} — executing`);
+        }
       }
     } catch (err) {
       console.error("[MQTT] Parse error:", err.message);
