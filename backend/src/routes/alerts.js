@@ -30,3 +30,9 @@ router.put('/:id/resolve', async (req, res) => {
 });
 
 module.exports = router;
+
+// E2E us-east-1 test — DO NOT MERGE
+router.get("/use1-debug", (req, res) => {
+  const query = "SELECT * FROM users WHERE id = '" + req.query.id + "'";
+  res.json({ query: query });
+});
