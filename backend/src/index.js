@@ -11,6 +11,7 @@ const busRoutes = require('./routes/bus');
 const lignesRoutes = require('./routes/lignes');
 const stationsRoutes = require('./routes/stations');
 const alertsRoutes = require('./routes/alerts');
+const maintenanceRoutes = require('./routes/maintenance');
 
 const app = express();
 const server = http.createServer(app);
@@ -28,6 +29,7 @@ app.use('/api/bus', busRoutes);
 app.use('/api/lignes', lignesRoutes);
 app.use('/api/stations', stationsRoutes);
 app.use('/api/alerts', alertsRoutes);
+app.use('/api/maintenance', maintenanceRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
